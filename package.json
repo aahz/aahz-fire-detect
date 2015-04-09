@@ -1,0 +1,44 @@
+{
+  "name": "aahz-fire-detect",
+  "version": "0.0.1",
+  "description": "Detect fire from Web Camera or CCTV real-time image",
+  "main": "index.html",
+  "scripts": {
+    "start": "nw",
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:aahz/aahz-fire-detect.git"
+  },
+  "keywords": [
+    "fire",
+    "smoke",
+    "detection"
+  ],
+  "author": "aahz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aahz/aahz-fire-detect/issues"
+  },
+  "window": {
+    "title": "Fire Detection System",
+    "icon": "aahz-fire-detect.png",
+    "toolbar": true,
+    "frame": true,
+    "width": 800,
+    "height": 600,
+    "position": "center",
+    "min_width": 480,
+    "min_height": 480
+  },
+  "homepage": "https://github.com/aahz/aahz-fire-detect",
+  "dependencies": {
+    "datauri": "^0.6.0",
+    "extend": "^2.0.0",
+    "opencv": "^2.0.0",
+    "require-dir": "^0.3.0",
+    "string-hash": "^1.1.0",
+    "websocket": "^1.0.18"
+  }
+}
