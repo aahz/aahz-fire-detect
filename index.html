@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+	<head lang="ru">
+		<meta charset="UTF-8">
+		<title>Fire Detection System</title>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+
+		<script src="vendor/knockout/knockout-3.3.0.js"></script>
+
+		<!-- styles -->
+		<link rel="stylesheet" href="vendor/materialize/css/materialize.css" />
+		<link rel="stylesheet" href="assets/css/app.css" />
+	</head>
+	<body>
+		<!-- header -->
+		<header>
+			<!-- loader -->
+			<div class="progress orange app-loader m-hidden">
+				<div class="indeterminate orange lighten-3"></div>
+			</div>
+			<!-- /loader -->
+			<!-- navigation -->
+			<nav class="orange app-navigation-block" role="navigation">
+				<div class="nav-wrapper container">
+					<a id="logo-container" href="" class="brand-logo">
+						FDS<i class="mdi-notification-voice-chat app-logo-icon"></i>
+					</a>
+
+					<ul class="right hide-on-med-and-down app-navigation"></ul>
+
+					<ul id="nav-mobile" class="side-nav app-navigation"></ul>
+
+					<a href="#" data-activates="nav-mobile" class="app-navigation-toggle button-collapse"><i class="mdi-navigation-menu"></i></a>
+				</div>
+			</nav>
+			<!-- /navigation -->
+		</header>
+		<!-- /header -->
+
+		<!-- application page -->
+		<main class="app-page"></main>
+		<!-- /application page -->
+
+		<!-- footer -->
+		<footer class="page-footer orange">
+			<div class="footer-copyright">
+				<div class="container">
+					&copy; 2015 <a class="orange-text text-lighten-3" href="http://aahz.pro">aahz.pro</a>
+				</div>
+			</div>
+		</footer>
+		<!-- /footer -->
+
+		<!-- scripts -->
+		<script src="vendor/jquery/jquery-2.1.3.js"></script>
+		<script src="vendor/materialize/js/materialize.js"></script>
+		<script src="vendor/jcanvas/jcanvas.js"></script>
+
+		<script>
+			;(function(require) {
+				// Start application
+				var application = require('./assets/js/app.js'),
+					gui = require('nw.gui'),
+					win = gui.Window.get();
+
+				win.maximize();
+
+				application.init();
+			})(window.require);
+		</script>
+	</body>
+</html>
