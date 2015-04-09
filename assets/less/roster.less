@@ -1,0 +1,28 @@
+.app-roster {
+	&-item {
+
+		&__header {
+			-webkit-transition: all .4s ease-out;
+			-moz-transition:    all .4s ease-out;
+			-ms-transition:     all .4s ease-out;
+			-o-transition:      all .4s ease-out;
+			transition:         all .4s ease-out;
+		}
+
+	  	&__body {
+
+		}
+
+		&__player {
+			width: 100%;
+		  	margin-bottom: -5px;
+		}
+
+		&.active {
+			.app-roster-item__header {
+				background-color: #ff9800 !important;
+				color: #ffffff !important;
+			}
+		}
+	}
+}
