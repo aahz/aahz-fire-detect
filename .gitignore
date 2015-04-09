@@ -41,3 +41,21 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# PHPStorm project
+.idea
+
+# Node JS Modules
+node_modules
+
+# Node Webkit Files
+locales
+icudtl.dat
+d3dcompiler_47.dll
+ffmpegsumo.dll
+libEGL.dll
+libGLESv2.dll
+pdf.dll
+nw.exe
+nw.pak
+nwjc.exe
