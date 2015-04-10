@@ -44,19 +44,20 @@
 		};
 
 		_this.client.onmessage = function(event) {
-			_this.$player.clearCanvas();
-
 			var $item = _this.$player.closest('.app-roster-item');
 
-			if ( $item.hasClass('active') ) {
-				_this.$player.drawImage({
-					source: event.data,
-					layer: true,
-					name: 'frame',
-					fromCenter: false,
-					width: Math.floor(638 / 2),
-					height: Math.floor(359 /2)
-				});
+			if ($item.hasClass('active')) {
+				_this.$player
+					.removeLayer('frame')
+					.clearCanvas()
+					.drawImage({
+						source: event.data,
+						layer: true,
+						name: 'frame',
+						fromCenter: false,
+						width: Math.floor(638 / 2),
+						height: Math.floor(359 / 2)
+					});
 			}
 		};
 	};

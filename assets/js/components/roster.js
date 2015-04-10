@@ -133,13 +133,12 @@
 			$item = $(event.target).closest('.app-roster-item');
 
 		// Stop existing playback
-		_this.videostream.client.send('stop');
+		_this.videostream.client.send('release');
 
 		_this.videostream.setPlayer($item.find('.app-roster-item__player'));
 
 		if ( $item.hasClass('active') ) {
-			_this.videostream.client.send('config|' + $item.data('connection'));
-			_this.videostream.client.send('start');
+			_this.videostream.client.send('start|' + $item.data('connection'));
 		}
 		else {
 			_this.videostream.client.send('stop');

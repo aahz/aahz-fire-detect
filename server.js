@@ -3,34 +3,18 @@ var WebSocketServer = require('websocket').server,
 	DataUri         = require('datauri'),
 	http            = require('http'),
 	cv              = require('opencv'),
-	converter       = new DataUri();
+	converter       = new DataUri(),
+	getConsoleTimestamp = require('./app/consoleTimestamp.js');
 
 var args = {
 	port: 6374,
 	secure: false
 };
 
-var interval;
+var timeout,
+	CamerasModule = require('./app/camera.js'),
+	cameras = new CamerasModule();
 
-function getConsoleTimestamp() {
-	var d = new Date(),
-		data = {
-			date: d.getDate(),
-			month: d.getMonth(),
-			year: d.getFullYear(),
-			hours: d.getHours(),
-			minutes: d.getMinutes(),
-			seconds: d.getSeconds()
-		};
-
-	for (var part in data) {
-		if ( data.hasOwnProperty(part) && (data[part] >= 0 && data[part] < 10) ) {
-			data[part] = '0' + data[part];
-		}
-	}
-
-	return data.date + '.' + data.month + '.' + data.year + ' ' + data.hours + ':' + data.minutes + ':' + data.seconds + '> ';
-}
 
 function sendCallback(err) {
 	if (err) {
@@ -87,94 +71,62 @@ router.mount('*', 'videostream-webcam-protocol', function(request) {
 		' - Protocol Version ' + connection.webSocketVersion
 	);
 
-	var cameraConfig = {};
-
 	connection.on('message', function(message) {
 		// We only care about text messages
 		if (message.type === 'utf8') {
-			switch (message.utf8Data) {
+			var commandArray = message.utf8Data.split('|'),
+				command = commandArray[0],
+				configString = (commandArray[1] || '');
+
+			switch (command) {
 				case 'start':
 				case 'restart':
-					console.log(getConsoleTimestamp() + 'Starting videostream-webcam for peer ' + connection.remoteAddress + '...');
+					cameras.startCamera(configString, function (camera) {
+						console.log(getConsoleTimestamp() + 'Starting ' + camera.config.type + '-videostream for peer ' + connection.remoteAddress + '...');
 
-					var camera,
-						cameraRead = function () {
-							camera.read(function (error, image) {
-								if (error) {
-									console.error(getConsoleTimestamp() + 'Error while reading image from web camera', error);
-								}
+						if ( connection.connected ) {
+							var frequency = (camera.config.fps !== undefined ? Math.round(1000 / parseInt(camera.config.fps, 10)) : 100),
+								videostream = function () {
+									camera.getFrame()
+										.then(
+											function (image) {
+												connection.send(converter.format('.jpg', image.toBuffer()).content);
+												timeout = setTimeout(videostream, frequency)
+											},
+											function (error) {
+												clearTimeout(timeout);
+												console.error(getConsoleTimestamp() + error.message);
+											}
+										);
 
-								var size = image.size();
+									clearTimeout(timeout);
+								};
 
-								if (size[0] > 0 && size[1] > 0) {
-									if (connection.connected) {
+							timeout = setTimeout(videostream, frequency);
+						}
 
-										var imageCopy = image.copy();
-										imageCopy.convertGrayscale();
-										imageCopy.dilate(4);
-
-										imageCopy.inRange([150, 150, 150], [255, 255, 255]);
-
-										var contours = imageCopy.findContours();
-
-										image.drawAllContours(contours, [0,0,200]);
-
-										connection.send(converter.format('.png', image.toBuffer()).content);
-									}
-									else {
-										console.log(getConsoleTimestamp() + 'Connection to peer ' + connection.remoteAddress + ' lost');
-										clearInterval(interval);
-										camera = undefined;
-									}
-								}
-								else {
-									console.warn(getConsoleTimestamp() + 'Got a blank image from web camera');
-								}
-							});
-						};
-
-					if ( cameraConfig.index ) {
-						camera = new cv.VideoCapture(parseInt(cameraConfig.index, 10));
-
-						interval = setInterval(cameraRead, (cameraConfig.fps !== undefined ? Math.round(1000 / parseInt(cameraConfig.fps)) : 100));
 						console.log('done');
-					}
-					else {
-						console.warn(getConsoleTimestamp() + 'Camera configuration not set');
-					}
+					});
 					break;
 				case 'stop':
 					console.log(getConsoleTimestamp() + 'Stoping videostream-webcam for peer ' + connection.remoteAddress + '...');
-					if ( interval ) {
-						clearInterval(interval);
-						camera = undefined;
-					}
+					clearTimeout(timeout);
+					console.log('done');
+					break;
+				case 'release':
+					console.log(getConsoleTimestamp() + 'Releasing current connections of videostream-webcam for peer ' + connection.remoteAddress + '...');
+					clearTimeout(timeout);
 					console.log('done');
 					break;
 				default:
-					if ( message.utf8Data.indexOf('config') === 0 ) {
-						var configStr = message.utf8Data.split('|');
-
-						if ( typeof configStr[1] === 'string' ) {
-							var config = {},
-								tempConfigArray = configStr[1].split(';');
-
-							for (var i = 0, ic = tempConfigArray.length - 1; i <= ic; i++ ) {
-								var tempConfig = tempConfigArray[i].split('=');
-
-								if ( typeof tempConfig[1] !== 'undefined' ) {
-									cameraConfig[tempConfig[0]] = tempConfig[1];
-								}
-							}
-						}
-					}
+					console.warn(getConsoleTimestamp() + 'Unknown command from client');
 					break;
 			}
 		}
 	});
 
 	connection.on('close', function(closeReason, description) {
-		clearInterval(interval);
+		clearTimeout(timeout);
 		console.log(getConsoleTimestamp() + 'videostream-webcam-protocol peer ' + connection.remoteAddress + ' disconnected, code: ' + closeReason + '.');
 	});
 

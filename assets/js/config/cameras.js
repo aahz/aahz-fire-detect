@@ -3,6 +3,7 @@ module.exports = [
         'title': 'Встроенная камера ASUS G56JR',
         'type': 'webcam',
         'connection': {
+            'type': 'webcam',
             'index': 0,
             'fps': 15
         }
@@ -11,6 +12,7 @@ module.exports = [
         'title': 'Microsoft LifeCam HD',
         'type': 'webcam',
         'connection': {
+            'type': 'webcam',
             'index': 1,
             'fps': 20
         }
