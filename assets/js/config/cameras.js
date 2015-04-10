@@ -5,7 +5,7 @@ module.exports = [
         'connection': {
             'type': 'webcam',
             'index': 0,
-            'fps': 15
+            'fps': 20
         }
     },
     {
