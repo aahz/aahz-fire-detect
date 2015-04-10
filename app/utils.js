@@ -1,4 +1,6 @@
-module.exports = function () {
+var utils = {};
+
+utils.getConsoleTimestamp = function () {
     var d = new Date(),
         data = {
             date: d.getDate(),
@@ -17,3 +19,5 @@ module.exports = function () {
 
     return data.date + '.' + data.month + '.' + data.year + ' ' + data.hours + ':' + data.minutes + ':' + data.seconds + '> ';
 };
+
+module.exports = utils;

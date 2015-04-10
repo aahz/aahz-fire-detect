@@ -5,7 +5,7 @@ function Camera(options) {
     _this.extend = require('extend');
     _this.hash = require('string-hash');
     _this.deferred = require('promise-deferred');
-    _this.consoleTimestamp = require('./consoleTimestamp.js');
+    _this.utils = require('./utils.js');
 
     _this.activeCameras = {};
 }
@@ -55,7 +55,7 @@ _proto.getFrame = function (camera) {
 
     var image = camera.videostream.read(function (error, image) {
         if (error) {
-            console.error(_this.consoleTimestamp() + 'Error while reading image from web camera', error);
+            console.error(_this.utils.getConsoleTimestamp() + 'Error while reading image from web camera', error);
         }
 
         var size = image.size();

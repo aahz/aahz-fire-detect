@@ -1,10 +1,8 @@
 var WebSocketServer = require('websocket').server,
 	WebSocketRouter = require('websocket').router,
-	DataUri         = require('datauri'),
 	http            = require('http'),
-	cv              = require('opencv'),
-	converter       = new DataUri(),
-	getConsoleTimestamp = require('./app/consoleTimestamp.js');
+	converter       = require('./app/converter.js'),
+	utils           = require('./app/utils.js');
 
 var args = {
 	port: 6374,
@@ -18,25 +16,15 @@ var timeout,
 
 function sendCallback(err) {
 	if (err) {
-		console.error(getConsoleTimestamp() + 'Websocket send error: ' + err);
+		console.error(utils.getConsoleTimestamp() + 'Websocket send error: ' + err);
 	}
 }
-
-/* Parse command line options */
-var pattern = /^--(.*?)(?:=(.*))?$/;
-
-process.argv.forEach(function(value) {
-	var match = pattern.exec(value);
-	if (match) {
-		args[match[1]] = match[2] ? match[2] : true;
-	}
-});
 
 args.protocol = args.secure ? 'wss:' : 'ws:';
 
 // Create server
 var server = http.createServer(function(request, response) {
-	console.log(getConsoleTimestamp() + 'Received HTTP request for ' + request.url);
+	console.log(utils.getConsoleTimestamp() + 'Received HTTP request for ' + request.url);
 	if (request.url === '/') {
 		response.writeHead(200, {
 			'Content-Type': 'text/html'
@@ -51,7 +39,7 @@ var server = http.createServer(function(request, response) {
 
 // Listen for defined port
 server.listen(args.port, function() {
-	console.log(getConsoleTimestamp() + 'Server is listening on port ' + args.port);
+	console.log(utils.getConsoleTimestamp() + 'Server is listening on port ' + args.port);
 });
 
 // WebSocket Server
@@ -66,7 +54,7 @@ router.mount('*', 'videostream-webcam-protocol', function(request) {
 	var connection = request.accept(request.origin);
 
 	console.log(
-		getConsoleTimestamp() +
+		utils.getConsoleTimestamp() +
 		'videostream-webcam-protocol connection accepted from ' + connection.remoteAddress +
 		' - Protocol Version ' + connection.webSocketVersion
 	);
@@ -82,20 +70,19 @@ router.mount('*', 'videostream-webcam-protocol', function(request) {
 				case 'start':
 				case 'restart':
 					cameras.startCamera(configString, function (camera) {
-						console.log(getConsoleTimestamp() + 'Starting ' + camera.config.type + '-videostream for peer ' + connection.remoteAddress + '...');
-
+						console.log(utils.getConsoleTimestamp() + 'Starting ' + camera.config.type + '-videostream for peer ' + connection.remoteAddress + '...');
 						if ( connection.connected ) {
 							var frequency = (camera.config.fps !== undefined ? Math.round(1000 / parseInt(camera.config.fps, 10)) : 100),
 								videostream = function () {
 									camera.getFrame()
 										.then(
 											function (image) {
-												connection.send(converter.format('.jpg', image.toBuffer()).content);
+												connection.send(converter('.jpg', image));
 												timeout = setTimeout(videostream, frequency)
 											},
 											function (error) {
 												clearTimeout(timeout);
-												console.error(getConsoleTimestamp() + error.message);
+												console.error(utils.getConsoleTimestamp() + error.message);
 											}
 										);
 
@@ -104,22 +91,21 @@ router.mount('*', 'videostream-webcam-protocol', function(request) {
 
 							timeout = setTimeout(videostream, frequency);
 						}
-
 						console.log('done');
 					});
 					break;
 				case 'stop':
-					console.log(getConsoleTimestamp() + 'Stoping videostream-webcam for peer ' + connection.remoteAddress + '...');
+					console.log(utils.getConsoleTimestamp() + 'Stoping videostream-webcam for peer ' + connection.remoteAddress + '...');
 					clearTimeout(timeout);
 					console.log('done');
 					break;
 				case 'release':
-					console.log(getConsoleTimestamp() + 'Releasing current connections of videostream-webcam for peer ' + connection.remoteAddress + '...');
+					console.log(utils.getConsoleTimestamp() + 'Releasing current connections of videostream-webcam for peer ' + connection.remoteAddress + '...');
 					clearTimeout(timeout);
 					console.log('done');
 					break;
 				default:
-					console.warn(getConsoleTimestamp() + 'Unknown command from client');
+					console.warn(utils.getConsoleTimestamp() + 'Unknown command from client');
 					break;
 			}
 		}
@@ -127,11 +113,11 @@ router.mount('*', 'videostream-webcam-protocol', function(request) {
 
 	connection.on('close', function(closeReason, description) {
 		clearTimeout(timeout);
-		console.log(getConsoleTimestamp() + 'videostream-webcam-protocol peer ' + connection.remoteAddress + ' disconnected, code: ' + closeReason + '.');
+		console.log(utils.getConsoleTimestamp() + 'videostream-webcam-protocol peer ' + connection.remoteAddress + ' disconnected, code: ' + closeReason + '.');
 	});
 
 	connection.on('error', function(error) {
-		console.log(getConsoleTimestamp() + 'Connection error for peer ' + connection.remoteAddress + ': ' + error);
+		console.log(utils.getConsoleTimestamp() + 'Connection error for peer ' + connection.remoteAddress + ': ' + error);
 	});
 });
 
