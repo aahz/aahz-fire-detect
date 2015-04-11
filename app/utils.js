@@ -38,4 +38,21 @@ utils.forceGC = function () {
     }
 };
 
+utils.parseConfigString = function (configStr) {
+    if ( typeof configStr === 'string' ) {
+        var config = {},
+            tempConfigArray = configStr.split(';');
+
+        for (var i = 0, ic = tempConfigArray.length - 1; i <= ic; i++ ) {
+            var tempConfig = tempConfigArray[i].split('=');
+
+            if ( typeof tempConfig[1] !== 'undefined' ) {
+                config[tempConfig[0]] = tempConfig[1];
+            }
+        }
+    }
+
+    return config;
+};
+
 module.exports = utils;

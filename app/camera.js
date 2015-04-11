@@ -1,11 +1,11 @@
-function Camera(options) {
-    var _this = this;
+var Deferred = require('promise-deferred'),
+    cv = require('opencv'),
+    extend = require('extend'),
+    hash = require('string-hash'),
+    utils = require('./utils.js');
 
-    _this.cv = require('opencv');
-    _this.extend = require('extend');
-    _this.hash = require('string-hash');
-    _this.deferred = require('promise-deferred');
-    _this.utils = require('./utils.js');
+function Camera() {
+    var _this = this;
 
     _this.activeCameras = {};
 }
@@ -15,14 +15,14 @@ var _static = Camera,
 
 _proto.startCamera = function (configStr, callback) {
     var _this = this,
-        cameraConfig = _this._readConfig(configStr),
+        cameraConfig = utils.parseConfigString(configStr),
         cameraId;
 
     if ( !cameraConfig.type ) {
         cameraConfig.type = 'webcam';
     }
 
-    cameraId = 'cam_' + _this.hash(JSON.stringify(cameraConfig));
+    cameraId = 'cam_' + hash(JSON.stringify(cameraConfig));
 
     // Return camera if already started
     if ( _this.activeCameras.hasOwnProperty(cameraId) ) {
@@ -31,7 +31,7 @@ _proto.startCamera = function (configStr, callback) {
         }
     }
 
-    _this.activeCameras[cameraId] = _this.extend(true, {
+    _this.activeCameras[cameraId] = extend(true, {
         'id': cameraId,
         'config': cameraConfig
     }, (cameraConfig.type === 'ipcam' ? _this._startIpCam(cameraConfig) : _this._startWebCamera(cameraConfig)));
@@ -51,7 +51,7 @@ _proto.startCamera = function (configStr, callback) {
 
 _proto.getFrame = function (camera) {
     var _this = this,
-        deferred = new _this.deferred(),
+        deferred = new Deferred(),
         image;
 
     try {
@@ -72,7 +72,7 @@ _proto.getFrame = function (camera) {
 
     // Forcing garbage collector to prevent server memory leak
     image = undefined;
-    _this.utils.forceGC();
+    utils.forceGC();
 
     return deferred.promise;
 };
@@ -87,7 +87,7 @@ _proto._startWebCamera = function (config) {
     var _this = this,
         result = {};
 
-    result.videostream = new _this.cv.VideoCapture(parseInt(config.index, 10));
+    result.videostream = new cv.VideoCapture(parseInt(config.index, 10));
 
     return result;
 };
@@ -100,25 +100,6 @@ _proto._startIpCam = function (config) {
     result.videostream = undefined;
 
     return result;
-};
-
-_proto._readConfig = function (configStr) {
-    var _this = this;
-
-    if ( typeof configStr === 'string' ) {
-        var config = {},
-            tempConfigArray = configStr.split(';');
-
-        for (var i = 0, ic = tempConfigArray.length - 1; i <= ic; i++ ) {
-            var tempConfig = tempConfigArray[i].split('=');
-
-            if ( typeof tempConfig[1] !== 'undefined' ) {
-                config[tempConfig[0]] = tempConfig[1];
-            }
-        }
-    }
-
-    return config;
 };
 
 module.exports = _static;
