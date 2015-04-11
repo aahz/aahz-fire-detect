@@ -68,7 +68,6 @@ router.mount('*', 'videostream-webcam-protocol', function(request) {
 
 			switch (command) {
 				case 'start':
-				case 'restart':
 					cameras.startCamera(configString, function (camera) {
 						console.log(utils.getConsoleTimestamp() + 'Starting ' + camera.config.type + '-videostream for peer ' + connection.remoteAddress + '...');
 						if ( connection.connected ) {
@@ -85,8 +84,6 @@ router.mount('*', 'videostream-webcam-protocol', function(request) {
 												console.error(utils.getConsoleTimestamp() + error.message);
 											}
 										);
-
-									clearTimeout(timeout);
 								};
 
 							timeout = setTimeout(videostream, frequency);

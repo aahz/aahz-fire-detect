@@ -51,32 +51,28 @@ _proto.startCamera = function (configStr, callback) {
 
 _proto.getFrame = function (camera) {
     var _this = this,
-        deferred = new _this.deferred();
+        deferred = new _this.deferred(),
+        image;
 
-    var image = camera.videostream.read(function (error, image) {
-        if (error) {
-            console.error(_this.utils.getConsoleTimestamp() + 'Error while reading image from web camera', error);
-        }
+    try {
+        image = camera.videostream.ReadSync();
 
         var size = image.size();
 
         if (size[0] > 0 && size[1] > 0) {
-            var imageCopy = image.copy();
-            imageCopy.convertGrayscale();
-            imageCopy.dilate(4);
-
-            imageCopy.inRange([150, 150, 150], [255, 255, 255]);
-
-            var contours = imageCopy.findContours();
-
-            image.drawAllContours(contours, [200,70,70]);
-
             deferred.resolve(image);
         }
         else {
             deferred.reject(new Error('Got a blank image from camera'));
         }
-    });
+    }
+    catch (error) {
+        deferred.reject(error);
+    }
+
+    // Forcing garbage collector to prevent server memory leak
+    image = undefined;
+    _this.utils.forceGC();
 
     return deferred.promise;
 };
