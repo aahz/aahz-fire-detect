@@ -1,6 +1,6 @@
 {
   "name": "aahz-fire-detect",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Detect fire from Web Camera or CCTV real-time image",
   "main": "index.html",
   "scripts": {
