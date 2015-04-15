@@ -4,5 +4,5 @@ var DataUri = require('datauri'),
 module.exports = function (format, image) {
     var formattedData = converter.format(format, image.toBuffer());
 
-    return JSON.stringify(formattedData);
+    return formattedData;
 };

@@ -34,8 +34,12 @@
   },
   "homepage": "https://github.com/aahz/aahz-fire-detect",
   "dependencies": {
+    "better-console": "^0.2.4",
+    "colors": "^1.0.3",
     "datauri": "^0.6.0",
+    "event-box": "^1.1.2",
     "extend": "^2.0.0",
+    "infinite-loop": "^0.2.2",
     "opencv": "^2.0.0",
     "promise-deferred": "^2.0.1",
     "require-dir": "^0.3.0",

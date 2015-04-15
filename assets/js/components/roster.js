@@ -62,6 +62,8 @@
 				}
 			}
 
+			tempArray.push('uid=' + uid);
+
 			connection = tempArray.join(';');
 		}
 		else {
@@ -132,16 +134,15 @@
 		var _this = this,
 			$item = $(event.target).closest('.app-roster-item');
 
-		// Stop existing playback
-		_this.videostream.client.send('release');
-
 		_this.videostream.setPlayer($item.find('.app-roster-item__player'));
 
 		if ( $item.hasClass('active') ) {
+			// Stop existing playback
+			_this.videostream.client.send('release');
 			_this.videostream.client.send('start|' + $item.data('connection'));
 		}
 		else {
-			_this.videostream.client.send('stop');
+			_this.videostream.client.send('stop|' + $item.data('uid'));
 		}
 	};
 

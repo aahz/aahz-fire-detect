@@ -46,23 +46,38 @@
 		_this.client.onmessage = function(event) {
 			var $item = _this.$player.closest('.app-roster-item'),
 				imageData = JSON.parse(event.data),
-				image = new window.Image();
+				image = new window.Image(),
+				canvasImageSize = [Math.floor(638 / 2), Math.floor(359 / 2)],
+				movementHighlight = {
+					strokeStyle: '#fff',
+					strokeWidth: 1,
+					layer: true,
+					name: 'movement'
+				},
+				flameHighlight,
+				smokeHighlight;
 
 			image.src = imageData.content;
+
+			if ( imageData.detection.movement ) {
+				movementHighlight = $.extend(true, movementHighlight, _this._getPathDataFromDetection(imageData.detection.movement));
+			}
 
 			image.onload = function () {
 				if ($item.hasClass('active')) {
 					_this.$player
 						.removeLayer('frame')
+						.removeLayer('movement')
 						.clearCanvas()
 						.drawImage({
 							source: image,
 							layer: true,
 							name: 'frame',
-							fromCenter: false,
-							width: Math.floor(638 / 2),
-							height: Math.floor(359 / 2)
-						});
+							fromCenter: false/*,
+							width: Math.floor(_this.$player.innerWidth() / 2),
+							height: Math.floor(_this.$player.innerHeight() / 2)*/
+						})
+						.drawPath(movementHighlight);
 				}
 
 				// Free memory to prevent client memory leak
@@ -71,10 +86,43 @@
 		};
 	};
 
+	_proto._getPathDataFromDetection = function (detectionObject) {
+		var _this = this,
+
+			iterator = 1,
+			result = {};
+
+		for (var contour in detectionObject) {
+			if ( detectionObject.hasOwnProperty(contour) ) {
+				result['p' + iterator] = {
+					type: 'line',
+					closed: true,
+					rounded: true
+				};
+
+				for (var point = 0; point < detectionObject[contour].length; point++) {
+					result['p' + iterator]['x' + (point + 1)] = detectionObject[contour][point][0];
+					result['p' + iterator]['y' + (point + 1)] = detectionObject[contour][point][1];
+				}
+
+				iterator++;
+			}
+		}
+
+		return result;
+	};
+
 	_proto.setPlayer = function ($player) {
 		var _this = this;
 
 		_this.$player = $player;
+
+		_this.$player
+			.restoreCanvas()
+			.scaleCanvas({
+				x: 0, y: 0,
+				scaleX: .47, scaleY: .315
+			});
 	};
 
 	_proto.getPlayer = function () {
