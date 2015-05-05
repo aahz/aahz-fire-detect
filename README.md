@@ -1,7 +1,7 @@
 # Fire Detection System
 
-Developed by [aahz](http://aahz.pro/)
-Licensed
+Developed by [aahz](http://aahz.pro/)  
+Licensed under [MIT License](http://opensource.org/licenses/MIT)
 
 ## Description
 
