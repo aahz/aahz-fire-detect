@@ -49,13 +49,26 @@
 				image = new window.Image(),
 				canvasImageSize = [Math.floor(638 / 2), Math.floor(359 / 2)],
 				movementHighlight = {
-					strokeStyle: '#fff',
+					strokeStyle: '#0000FF',
+					fillStyle: 'rgba(0,0,255,.3)',
 					strokeWidth: 1,
 					layer: true,
 					name: 'movement'
 				},
-				flameHighlight,
-				smokeHighlight;
+				flameHighlight = {
+					strokeStyle: '#FF0000',
+					fillStyle: 'rgba(255,0,0,.3)',
+					strokeWidth: 1,
+					layer: true,
+					name: 'flame'
+				},
+				smokeHighlight = {
+					strokeStyle: '#00FF00',
+					fillStyle: 'rgba(0,255,0,.3)',
+					strokeWidth: 1,
+					layer: true,
+					name: 'smoke'
+				};
 
 			image.src = imageData.content;
 
@@ -63,21 +76,31 @@
 				movementHighlight = $.extend(true, movementHighlight, _this._getPathDataFromDetection(imageData.detection.movement));
 			}
 
+			if ( imageData.detection.flame ) {
+				flameHighlight = $.extend(true, flameHighlight, _this._getPathDataFromDetection(imageData.detection.flame));
+			}
+
+			if ( imageData.detection.smoke ) {
+				smokeHighlight = $.extend(true, smokeHighlight, _this._getPathDataFromDetection(imageData.detection.smoke));
+			}
+
 			image.onload = function () {
 				if ($item.hasClass('active')) {
 					_this.$player
 						.removeLayer('frame')
 						.removeLayer('movement')
+						.removeLayer('flame')
+						.removeLayer('smoke')
 						.clearCanvas()
 						.drawImage({
 							source: image,
 							layer: true,
 							name: 'frame',
-							fromCenter: false/*,
-							width: Math.floor(_this.$player.innerWidth() / 2),
-							height: Math.floor(_this.$player.innerHeight() / 2)*/
+							fromCenter: false
 						})
-						.drawPath(movementHighlight);
+						.drawPath(movementHighlight)
+						.drawPath(flameHighlight)
+						.drawPath(smokeHighlight);
 				}
 
 				// Free memory to prevent client memory leak

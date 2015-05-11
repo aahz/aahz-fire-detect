@@ -73,13 +73,18 @@ router.mount('*', 'videostream-webcam-protocol', function(request) {
 							var imageObject = converter('.jpg', image);
 
 							imageObject.detection = {
-								'movement': detector.detectMotion(image)
+								'movement': detector.detectMotion(image),
+								'flame':  detector.detectFlame(image),
+								'smoke':  detector.detectSmoke(image)
 							};
+
+							detector.setFrames(image);
 
 							// Send image to client
 							connection.send(JSON.stringify(imageObject));
 						}
 					});
+
 					camera.observable.on('error', function (error) {
 						camera.loop.stop();
 						console.error(error);
