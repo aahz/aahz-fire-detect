@@ -1,6 +1,8 @@
 var cv = require('opencv'),
     extend = require('extend'),
     hash = require('string-hash'),
+    path = require('path'),
+    fs = require('fs'),
     utils = require('./utils.js'),
 
     Streamer = require('./streamer.js'),
@@ -20,11 +22,9 @@ _static.defaultFPS = 10;
 _proto.startCamera = function (configStr) {
     var _this = this,
         cameraConfig = utils.parseConfigString(configStr),
-        cameraId,
+        cameraId = 'cam_' + cameraConfig.uid,
         streamer,
         camera;
-
-    cameraId = 'cam_' + cameraConfig.uid;
 
     if ( !cameraConfig.type ) {
         cameraConfig.type = 'webcam';
@@ -42,7 +42,7 @@ _proto.startCamera = function (configStr) {
     _this.activeCameras[cameraId] = extend(true, {
         'id': cameraId,
         'config': cameraConfig
-    }, (cameraConfig.type === 'ipcam' ? _this._startIpCam(cameraConfig) : _this._startWebCamera(cameraConfig)));
+    }, _this._startCamera(cameraConfig.type, cameraConfig));
 
     camera = _this.activeCameras[cameraId];
 
@@ -97,6 +97,27 @@ _proto._releaseCamera = function (camera) {
     camera.videostream.Close();
 };
 
+_proto._startCamera = function (type, config) {
+    var _this = this,
+        result = {
+            videostream: undefined
+        };
+
+    switch (type) {
+        case 'webcam':
+            result = _this._startWebCamera(config);
+            break;
+        case 'ipcam':
+            result = _this._startIpCamera(config);
+            break;
+        case 'clip':
+            result = _this._startClipCamera(config);
+            break;
+    }
+
+    return result;
+};
+
 _proto._startWebCamera = function (config) {
     var _this = this,
         result = {};
@@ -106,12 +127,28 @@ _proto._startWebCamera = function (config) {
     return result;
 };
 
-_proto._startIpCam = function (config) {
+_proto._startIpCamera = function (config) {
     var _this = this,
         result = {};
 
     // TODO: Add support for IP cameras
     result.videostream = undefined;
+
+    return result;
+};
+
+_proto._startClipCamera = function (config) {
+    var _this = this,
+
+        filePath = path.resolve(__dirname, '..', config.url),
+
+        result = {
+            videostream: undefined
+        };
+
+    if ( fs.existsSync(filePath) ) {
+        result.videostream = new cv.VideoCapture(filePath);
+    }
 
     return result;
 };
