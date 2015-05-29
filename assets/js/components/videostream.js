@@ -9,6 +9,8 @@
 
 		_this.options = app.utils.extend(true, {}, _staic.defaults, options);
 
+		_this.$app = $('.app-page');
+
 		_this._registerClient();
 
 		return _this;
@@ -18,36 +20,38 @@
 		'server': {
 			'url': 'localhost',
 			'port': 6374,
-			'protocol': 'videostream-webcam-protocol'
+			'protocol': 'videostream-protocol'
 		},
-		'type': 'webcam', // Only allow webcam for now. TODO: Add support for ipcam
-		'connection': 0,  // Index of webcam or connection for ipcam
-		'fps': 15
+		'reconnectInterval': 500
 	};
 
 	_proto._registerClient = function () {
-		var _this = this,
-			Websocket = require('websocket').w3cwebsocket;
+		var _this = this;
 
-		_this.client = new Websocket('ws://' + _this.options.server.url + ':' + _this.options.server.port + '/', _this.options.server.protocol);
+		_this.client = _this._createSocket(_this.options.server);
 
 		_this.client.onerror = function() {
 			console.error(_this.options.server.protocol + ': Connection error');
+
+			_this.$app.trigger('connection-error');
 		};
 
 		_this.client.onopen = function() {
 			console.info(_this.options.server.protocol + ': Connected to server');
+
+			_this.$app.trigger('connection-open');
 		};
 
 		_this.client.onclose = function() {
 			console.info(_this.options.server.protocol + ': Client closed connection');
+
+			_this.$app.trigger('connection-close');
 		};
 
 		_this.client.onmessage = function(event) {
 			var $item = _this.$player.closest('.app-roster-item'),
 				imageData = JSON.parse(event.data),
 				image = new window.Image(),
-				canvasImageSize = [Math.floor(638 / 2), Math.floor(359 / 2)],
 				movementHighlight = {
 					strokeStyle: '#0000FF',
 					fillStyle: 'rgba(0,0,255,.3)',
@@ -56,19 +60,14 @@
 					name: 'movement'
 				},
 				flameHighlight = {
-					strokeStyle: '#FF0000',
-					fillStyle: 'rgba(255,0,0,.3)',
-					strokeWidth: 1,
-					layer: true,
-					name: 'flame'
-				},
-				smokeHighlight = {
 					strokeStyle: '#00FF00',
 					fillStyle: 'rgba(0,255,0,.3)',
 					strokeWidth: 1,
 					layer: true,
-					name: 'smoke'
+					name: 'flame'
 				};
+
+			_this.$app.trigger('connection-message');
 
 			image.src = imageData.content;
 
@@ -78,10 +77,6 @@
 
 			if ( imageData.detection.flame ) {
 				flameHighlight = $.extend(true, flameHighlight, _this._getPathDataFromDetection(imageData.detection.flame));
-			}
-
-			if ( imageData.detection.smoke ) {
-				smokeHighlight = $.extend(true, smokeHighlight, _this._getPathDataFromDetection(imageData.detection.smoke));
 			}
 
 			image.onload = function () {
@@ -99,14 +94,28 @@
 							fromCenter: false
 						})
 						.drawPath(movementHighlight)
-						.drawPath(flameHighlight)
-						.drawPath(smokeHighlight);
+						.drawPath(flameHighlight);
 				}
 
 				// Free memory to prevent client memory leak
 				delete this;
 			};
 		};
+	};
+
+	_proto._getWebsocketConnectionData = function (serverConfig) {
+		return {
+			'url': 'ws://' + serverConfig.url + ':' + serverConfig.port + '/',
+			'protocol': serverConfig.protocol
+		};
+	};
+
+	_proto._createSocket = function (serverConfig) {
+		var _this = this,
+			Websocket = require('websocket').w3cwebsocket,
+			websocketData = _this._getWebsocketConnectionData(serverConfig);
+
+		return new Websocket(websocketData.url, websocketData.protocol);
 	};
 
 	_proto._getPathDataFromDetection = function (detectionObject) {
