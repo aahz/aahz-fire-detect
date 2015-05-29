@@ -31,6 +31,7 @@
 				'navigationList': app.config.navigation
 			}),
 			'loader': new app.components.loader(),
+			'connector': new app.components.connector(),
 			'roster': new app.components.roster({
 				'cameras': app.config.cameras
 			})
