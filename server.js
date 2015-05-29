@@ -48,10 +48,10 @@ var wsServer = new WebSocketServer({
 var router = new WebSocketRouter();
 router.attachServer(wsServer);
 
-router.mount('*', 'videostream-protocol', function(request) {
+router.mount('*', 'videostream-webcam-protocol', function(request) {
 	var connection = request.accept(request.origin);
 
-	console.info('videostream-protocol connection accepted from ' + connection.remoteAddress + ' - Protocol Version ' + connection.webSocketVersion);
+	console.info('videostream-webcam-protocol connection accepted from ' + connection.remoteAddress + ' - Protocol Version ' + connection.webSocketVersion);
 
 	connection.on('message', function(message) {
 		// We only care about text messages
@@ -62,8 +62,7 @@ router.mount('*', 'videostream-protocol', function(request) {
 
 			switch (command) {
 				case 'start':
-					var camera = cameraManager.startCamera(configString),
-						cameraConfigObject = utils.parseConfigString(configString);
+					var camera = cameraManager.startCamera(configString);
 
 					console.info('Starting ' + camera.config.type + '-videostream for peer ' + connection.remoteAddress + '...');
 
@@ -75,7 +74,8 @@ router.mount('*', 'videostream-protocol', function(request) {
 
 							imageObject.detection = {
 								'movement': detector.detectMotion(image),
-								'flame':  detector.detectFlame(image, (cameraConfigObject.detectionBase || 'common'))
+								'flame':  detector.detectFlame(image),
+								'smoke':  detector.detectSmoke(image)
 							};
 
 							detector.setFrames(image);
@@ -96,7 +96,7 @@ router.mount('*', 'videostream-protocol', function(request) {
 					break;
 				case 'stop':
 					if ( activeCameras['cam_' + configString] ) {
-						console.info('Stoping videostream for peer ' + connection.remoteAddress + '...');
+						console.info('Stoping videostream-webcam for peer ' + connection.remoteAddress + '...');
 						var cameraId = 'cam_' + configString;
 						activeCameras[cameraId].loop.stop();
 						delete activeCameras[cameraId];
@@ -104,7 +104,7 @@ router.mount('*', 'videostream-protocol', function(request) {
 					}
 					break;
 				case 'release':
-					console.info('Releasing current connections of videostream for peer ' + connection.remoteAddress + '...');
+					console.info('Releasing current connections of videostream-webcam for peer ' + connection.remoteAddress + '...');
 					for (var cameraId in activeCameras) {
 						if ( activeCameras.hasOwnProperty(cameraId) ) {
 							activeCameras[cameraId].loop.stop();
