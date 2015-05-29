@@ -48,7 +48,7 @@
 
 	_proto.createItem = function (config) {
 		var _this = this,
-			icon = (config.type === 'webcam' ? 'mdi-image-camera-alt' : 'mdi-image-camera'),
+			icon = _this._getIcon(config.type),
 			title = (config.title || (config.type === 'webcam' ? 'Веб камера' : 'IP камера')),
 			uid = app.utils.hash(JSON.stringify(config)),
 			connection = '';
@@ -79,6 +79,25 @@
 				'connection': connection
 			})
 		};
+
+		return result;
+	};
+
+	_proto._getIcon = function (type) {
+		var _this = this,
+			result = '';
+
+		switch (type) {
+			case 'webcam':
+				result = 'mdi-image-camera-alt';
+				break;
+			case 'ipcam':
+				result = 'mdi-image-camera';
+				break;
+			case 'clip':
+				result = 'mdi-action-theaters';
+				break;
+		}
 
 		return result;
 	};
